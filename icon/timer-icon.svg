@@ -1,14 +1,121 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1C1C1E"/>
-      <stop offset="100%" stop-color="#000000"/>
+    <!-- Background gradient with MD3 green -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5a7a58"/>
+      <stop offset="100%" stop-color="#3a5438"/>
     </linearGradient>
+    <!-- Hourglass glow -->
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.5">
+      <stop offset="0%" stop-color="#a8bfa5" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#3a5438" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Glass shine -->
+    <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <!-- Sand gradient -->
+    <linearGradient id="sandGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#d4c5a9"/>
+      <stop offset="100%" stop-color="#b8a88a"/>
+    </linearGradient>
+    <!-- Falling sand -->
+    <linearGradient id="sandFall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d4c5a9"/>
+      <stop offset="100%" stop-color="#c4b599"/>
+    </linearGradient>
+    <!-- Metal frame gradient (3D effect) -->
+    <linearGradient id="frameGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7a7a7e"/>
+      <stop offset="30%" stop-color="#c4c4c8"/>
+      <stop offset="50%" stop-color="#8a8a8e"/>
+      <stop offset="70%" stop-color="#b0b0b4"/>
+      <stop offset="100%" stop-color="#5a5a5e"/>
+    </linearGradient>
+    <!-- Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1b1b1d" flood-opacity="0.3"/>
+    </filter>
+    <filter id="innerShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#1b1b1d" flood-opacity="0.4"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <circle cx="256" cy="240" r="140" fill="none" stroke="#FF9500" stroke-width="12"/>
-  <line x1="256" y1="240" x2="256" y2="156" stroke="#FF9500" stroke-width="10" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="308" y2="240" stroke="#FF9500" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="256" cy="240" r="8" fill="#FF9500"/>
-  <circle cx="256" cy="380" r="16" fill="#34C759"/>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGrad)"/>
+  <rect width="512" height="512" rx="96" fill="url(#glow)"/>
+
+  <!-- Hourglass group -->
+  <g transform="translate(256,256)" filter="url(#shadow)">
+    <g transform="translate(0,-10)">
+      <!-- Top metal bar -->
+      <rect x="-80" y="-120" width="160" height="16" rx="8" fill="url(#frameGrad)"/>
+      <!-- Top cap -->
+      <rect x="-70" y="-108" width="140" height="10" rx="4" fill="#6a6a6e"/>
+
+      <!-- Glass body top half -->
+      <path d="M-70,-98 Q-70,-50 -55,-20 Q-40,10 0,10 Q40,10 55,-20 Q70,-50 70,-98 Z"
+        fill="rgba(200,210,200,0.08)" stroke="rgba(180,190,180,0.3)" stroke-width="2"/>
+
+      <!-- Glass body bottom half -->
+      <path d="M-70,120 Q-70,72 -55,42 Q-40,12 0,12 Q40,12 55,42 Q70,72 70,120 Z"
+        fill="rgba(200,210,200,0.08)" stroke="rgba(180,190,180,0.3)" stroke-width="2"/>
+
+      <!-- Sand accumulated at bottom -->
+      <path d="M-68,120 Q-68,85 -50,60 Q-30,38 0,36 Q30,38 50,60 Q68,85 68,120 Z"
+        fill="url(#sandGrad)" filter="url(#innerShadow)"/>
+
+      <!-- Sand surface line -->
+      <path d="M-65,62 Q-30,40 0,38 Q30,40 65,62"
+        fill="none" stroke="#cbb99e" stroke-width="1.5"/>
+
+      <!-- Falling sand stream -->
+      <line x1="0" y1="-20" x2="0" y2="40" stroke="url(#sandFall)" stroke-width="2.5"
+        stroke-dasharray="6,4" opacity="0.7"/>
+
+      <!-- Sand pile at top (remaining) -->
+      <path d="M-50,-90 Q-40,-60 -25,-40 Q-10,-22 0,-20 Q10,-22 25,-40 Q40,-60 50,-90 Z"
+        fill="#d4c5a9">
+        <animate attributeName="d" dur="3s" repeatCount="indefinite"
+          values="M-50,-90 Q-40,-60 -25,-40 Q-10,-22 0,-20 Q10,-22 25,-40 Q40,-60 50,-90 Z;
+                  M-48,-90 Q-38,-58 -22,-38 Q-8,-20 0,-18 Q8,-20 22,-38 Q38,-58 48,-90 Z;
+                  M-50,-90 Q-40,-60 -25,-40 Q-10,-22 0,-20 Q10,-22 25,-40 Q40,-60 50,-90 Z"/>
+      </path>
+
+      <!-- Glass shine overlay -->
+      <path d="M-70,-98 Q-70,-50 -55,-20 Q-40,10 0,10 Q40,10 55,-20 Q70,-50 70,-98 Z"
+        fill="url(#glassShine)"/>
+      <path d="M-70,120 Q-70,72 -55,42 Q-40,12 0,12 Q40,12 55,42 Q70,72 70,120 Z"
+        fill="url(#glassShine)"/>
+
+      <!-- Bottom metal bar -->
+      <rect x="-80" y="118" width="160" height="16" rx="8" fill="url(#frameGrad)"/>
+      <!-- Bottom cap -->
+      <rect x="-70" y="114" width="140" height="10" rx="4" fill="#6a6a6e"/>
+
+      <!-- Side pillars -->
+      <rect x="-76" y="-112" width="8" height="230" rx="4" fill="url(#frameGrad)"/>
+      <rect x="68" y="-112" width="8" height="230" rx="4" fill="url(#frameGrad)"/>
+
+      <!-- Highlight on left pillar -->
+      <rect x="-74" y="-108" width="2" height="222" rx="1" fill="rgba(255,255,255,0.15)"/>
+      <rect x="69" y="-108" width="2" height="222" rx="1" fill="rgba(255,255,255,0.08)"/>
+
+      <!-- Sand drop animation dots -->
+      <circle cx="-4" cy="-15" r="1.5" fill="#d4c5a9" opacity="0">
+        <animate attributeName="cy" dur="1.5s" repeatCount="indefinite"
+          values="-15;35" keyTimes="0;1"/>
+        <animate attributeName="opacity" dur="1.5s" repeatCount="indefinite"
+          values="0.8;0" keyTimes="0;1"/>
+      </circle>
+      <circle cx="4" cy="-15" r="1" fill="#d4c5a9" opacity="0">
+        <animate attributeName="cy" dur="1.8s" repeatCount="indefinite"
+          values="-15;35" keyTimes="0;1"/>
+        <animate attributeName="opacity" dur="1.8s" repeatCount="indefinite"
+          values="0.6;0" keyTimes="0;1"/>
+      </circle>
+    </g>
+  </g>
 </svg>
