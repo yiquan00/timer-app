@@ -1,0 +1,19 @@
+﻿{
+  "name": "计时器 Timer",
+  "short_name": "计时器",
+  "description": "iPhone 风格计时器 - 倒计时结束后自动关闭屏幕",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#1C1C1E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon/timer-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "lifestyle"]
+}

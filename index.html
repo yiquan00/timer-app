@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<title>计时器</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#000;--surface:#1C1C1E;--surface2:#2C2C2E;--text:#fff;--text2:#8E8E93;--text3:#636366;--green:#34C759;--orange:#FF9500;--red:#FF3B30;--blue:#007AFF;--separator:#38383A}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.status-bar{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;padding:0 20px;border-bottom:1px solid var(--separator)}
+.status-bar .time{font-size:14px;font-weight:600;color:var(--text)}
+.app{width:100%;max-width:420px;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px 40px;position:relative}
+.header{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:auto;padding-top:8px;width:100%;display:flex;justify-content:space-between;align-items:center}
+.header .title{font-size:20px;font-weight:700;color:var(--text)}
+.timer-picker{width:100%;display:flex;flex-direction:column;align-items:center;gap:32px;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.time-row{display:flex;align-items:center;gap:4px;font-size:72px;font-weight:200;color:var(--text);font-variant-numeric:tabular-nums}
+.time-col{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:80px}
+.time-col .value{font-size:80px;font-weight:200;line-height:1;cursor:pointer}
+.time-col .btn{width:48px;height:48px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;touch-action:manipulation}
+.time-col .btn:active{background:var(--orange);color:var(--text);transform:scale(0.9)}
+.separator{font-size:72px;font-weight:200;color:var(--text3);padding:0 2px;align-self:center}
+.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:360px}
+.preset-btn{background:var(--surface2);border:none;border-radius:20px;padding:8px 16px;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;touch-action:manipulation}
+.preset-btn:active{background:var(--orange);color:#fff;transform:scale(0.95)}
+.timer-display{width:100%;display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:0;animation:fadeIn 0.4s ease}
+.timer-display.visible{display:flex}
+.progress-ring{width:260px;height:260px;position:relative;margin:0 auto}
+.progress-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.progress-ring .bg-circle{fill:none;stroke:var(--separator);stroke-width:4}
+.progress-ring .fg-circle{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.3s ease}
+.progress-ring .fg-circle.finished{stroke:var(--green);stroke-dashoffset:0!important}
+.time-number{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:64px;font-weight:200;letter-spacing:1px;font-variant-numeric:tabular-nums;text-align:center;line-height:1;pointer-events:none;white-space:nowrap}
+.time-number .label{font-size:14px;color:var(--text2);font-weight:500;margin-top:8px}
+.time-number.finished{color:var(--green)}
+.controls{width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:auto;padding-bottom:env(safe-area-inset-bottom)}
+.auto-lock-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;width:100%;justify-content:center}
+.auto-lock-row .label{font-size:14px;color:var(--text2);font-weight:400}
+.toggle{position:relative;width:51px;height:31px;background:var(--surface2);border-radius:16px;cursor:pointer;transition:background 0.3s;touch-action:manipulation;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle .knob{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.toggle.on .knob{transform:translateX(20px)}
+.action-row{display:flex;gap:20px;align-items:center;width:100%;justify-content:center}
+.action-btn{width:76px;height:76px;border-radius:50%;border:none;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;outline:none}
+.action-btn:active{transform:scale(0.92);opacity:0.8}
+.action-btn.primary{background:var(--green);color:#fff;font-size:18px;width:84px;height:84px}
+.action-btn.primary.paused{background:var(--orange)}
+.action-btn.secondary{background:var(--surface2);color:#fff;font-size:14px;border:1px solid var(--separator)}
+.action-btn.hidden{opacity:0;pointer-events:none;transform:scale(0.8);position:absolute}
+.alarm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;animation:fadeIn 0.3s ease}
+.alarm-overlay.visible{display:flex}
+.alarm-overlay .icon{font-size:72px;margin-bottom:16px;animation:pulse 0.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.alarm-overlay .msg{font-size:32px;font-weight:700;color:var(--text);margin-bottom:8px}
+.alarm-overlay .sub{font-size:18px;color:var(--text2);margin-bottom:40px}
+.alarm-overlay .dismiss-btn{background:var(--green);border:none;border-radius:30px;padding:14px 48px;color:#fff;font-size:18px;font-weight:600;cursor:pointer;transition:all 0.2s;touch-action:manipulation;outline:none}
+.alarm-overlay .dismiss-btn:active{opacity:0.7;transform:scale(0.95)}
+.timer-status{font-size:14px;color:var(--text2);margin-top:8px;text-align:center;min-height:20px}
+.spacer{height:env(safe-area-inset-bottom,16px);min-height:16px}
+@media(max-height:640px){
+  .time-row{font-size:56px}
+  .time-col .value{font-size:60px}
+  .time-col .btn{width:40px;height:40px;font-size:18px}
+  .separator{font-size:56px}
+  .progress-ring{width:200px;height:200px}
+  .time-number{font-size:48px}
+  .action-btn{width:64px;height:64px}
+  .action-btn.primary{width:72px;height:72px;font-size:16px}
+  .presets{gap:6px}
+  .preset-btn{padding:6px 12px;font-size:12px}
+  .app{padding:48px 16px 24px}
+}
+</style>
+</head>
+<body>
+<div class="status-bar"><div class="time" id="statusTime"></div></div>
+<div class="app" id="app">
+  <div class="header"><span class="title">计时器</span><span style="font-size:13px;color:var(--text2)">Timer</span></div>
+  <div class="timer-picker" id="timerPicker">
+    <div class="time-row">
+      <div class="time-col" data-unit="hours">
+        <button class="btn" data-adjust="up">&#x25B2;</button>
+        <span class="value" id="hoursVal">00</span>
+        <button class="btn" data-adjust="down">&#x25BC;</button>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-col" data-unit="minutes">
+        <button class="btn" data-adjust="up">&#x25B2;</button>
+        <span class="value" id="minutesVal">05</span>
+        <button class="btn" data-adjust="down">&#x25BC;</button>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-col" data-unit="seconds">
+        <button class="btn" data-adjust="up">&#x25B2;</button>
+        <span class="value" id="secondsVal">00</span>
+        <button class="btn" data-adjust="down">&#x25BC;</button>
+      </div>
+    </div>
+    <div class="presets" id="presets">
+      <button class="preset-btn" data-minutes="1">1 分</button>
+      <button class="preset-btn" data-minutes="3">3 分</button>
+      <button class="preset-btn" data-minutes="5">5 分</button>
+      <button class="preset-btn" data-minutes="10">10 分</button>
+      <button class="preset-btn" data-minutes="15">15 分</button>
+      <button class="preset-btn" data-minutes="30">30 分</button>
+      <button class="preset-btn" data-minutes="60">60 分</button>
+    </div>
+  </div>
+  <div class="timer-display" id="timerDisplay">
+    <div class="progress-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="bg-circle" cx="60" cy="60" r="52"/>
+        <circle class="fg-circle" id="progressCircle" cx="60" cy="60" r="52"
+          stroke-dasharray="326.73" stroke-dashoffset="0"/>
+      </svg>
+      <div class="time-number" id="timeNumber">
+        <div id="displayTime">05:00</div>
+        <div class="label" id="timerLabel">剩余时间</div>
+      </div>
+    </div>
+    <div class="timer-status" id="timerStatus"></div>
+  </div>
+  <div class="controls">
+    <div class="auto-lock-row">
+      <span class="label">结束后关闭屏幕</span>
+      <div class="toggle on" id="autoLockToggle"><div class="knob"></div></div>
+    </div>
+    <div class="action-row">
+      <button class="action-btn secondary hidden" id="secondaryBtn">&#x2715;</button>
+      <button class="action-btn primary" id="primaryBtn">开始</button>
+    </div>
+  </div>
+</div>
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="icon">&#x23F0;</div>
+  <div class="msg">时间到！</div>
+  <div class="sub">Time&rsquo;s Up</div>
+  <button class="dismiss-btn" id="dismissBtn">停止</button>
+</div>
+<div class="spacer"></div>
+<script>
+const S={IDLE:"idle",RUNNING:"running",PAUSED:"paused",FINISHED:"finished"};
+let state=S.IDLE,totalSec=300,remain=0,interval=null,wakeLock=null,autoLock=true,alarmCtx=null;
+
+const $=(id)=>document.getElementById(id);
+const hV=$("hoursVal"),mV=$("minutesVal"),sV=$("secondsVal");
+const picker=$("timerPicker"),display=$("timerDisplay"),dt=$("displayTime");
+const tl=$("timerLabel"),ts=$("timerStatus"),pc=$("progressCircle");
+const pb=$("primaryBtn"),sb=$("secondaryBtn"),alt=$("autoLockToggle");
+const ao=$("alarmOverlay"),db=$("dismissBtn"),st=$("statusTime");
+const C=2*Math.PI*52;
+
+function init(){
+  clock();setInterval(clock,1e3);
+  if("WakeLock"in navigator)wakeLock=navigator.wakeLock;
+  if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+  events();
+}
+function clock(){const d=new Date();st.textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
+
+function pickSec(){return (parseInt(hV.textContent)||0)*3600+(parseInt(mV.textContent)||0)*60+(parseInt(sV.textContent)||0)}
+function setPick(s){hV.textContent=String(Math.floor(s/3600)).padStart(2,"0");mV.textContent=String(Math.floor((s%3600)/60)).padStart(2,"0");sV.textContent=String(s%60).padStart(2,"0")}
+
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),s2=s%60;return h>0?h+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0")}
+
+function updDisp(){dt.textContent=state===S.IDLE?fmt(pickSec()):fmt(remain)}
+function updProg(r,t){pc.setAttribute("stroke-dashoffset",C*(1-(t>0?r/t:0)))}
+
+function showIdle(){
+  state=S.IDLE;picker.style.display="flex";display.classList.remove("visible");
+  sb.classList.add("hidden");pb.textContent="开始";pb.className="action-btn primary";
+  pc.className="fg-circle";ts.textContent="";updDisp();relLock();stopAlarm()
+}
+
+function start(){
+  totalSec=pickSec();if(totalSec<1)return;
+  remain=totalSec;state=S.RUNNING;
+  picker.style.display="none";display.classList.add("visible");
+  sb.classList.remove("hidden");pb.textContent="暂停";pb.className="action-btn primary";
+  pc.className="fg-circle";tl.textContent="剩余时间";ts.textContent="倒计时中…";
+  updDisp();updProg(remain,totalSec);reqLock();
+  interval=setInterval(tick,1e3)
+}
+
+function pause(){
+  state=S.PAUSED;clearInterval(interval);interval=null;
+  pb.textContent="继续";pb.className="action-btn primary paused";ts.textContent="已暂停";relLock()
+}
+
+function resume(){
+  state=S.RUNNING;pb.textContent="暂停";pb.className="action-btn primary";
+  pc.className="fg-circle";ts.textContent="倒计时中…";reqLock();
+  interval=setInterval(tick,1e3)
+}
+
+function cancel(){clearInterval(interval);interval=null;showIdle();setPick(totalSec||300);updDisp()}
+function tick(){remain--;updDisp();updProg(remain,totalSec);if(remain<=0){clearInterval(interval);interval=null;finish()}}
+
+function finish(){
+  state=S.FINISHED;ts.textContent="&#x23F0; 时间到！";dt.textContent="00:00";
+  pc.className="fg-circle finished";tl.textContent="&#x23F0; 时间到";
+  pb.textContent="完成";pb.className="action-btn primary";sb.classList.add("hidden");
+  try{navigator.vibrate&&navigator.vibrate([300,200,300,200,500])}catch(e){}
+  playAlarm();relLock();ao.classList.add("visible");
+  if("serviceWorker"in navigator&&navigator.serviceWorker.controller)
+    navigator.serviceWorker.controller.postMessage({type:"TIMER_FINISHED"});
+  setTimeout(()=>{ao.style.background="rgba(255,149,0,0.3)";setTimeout(()=>{ao.style.background="rgba(0,0,0,0.92)";setTimeout(()=>{ao.style.background="rgba(255,149,0,0.2)";setTimeout(()=>{ao.style.background="rgba(0,0,0,0.92)"},200)},200)},200)},0)
+}
+
+function dismiss(){ao.classList.remove("visible");stopAlarm();showIdle();setPick(totalSec||300)}
+
+async function reqLock(){
+  if(!autoLock||!wakeLock)return;
+  try{const wl=await navigator.wakeLock.request("screen");wakeLock=wl;wl.onrelease=()=>{wakeLock=null}}catch(e){wakeLock=null}
+}
+function relLock(){if(wakeLock){try{wakeLock.release()}catch(e){}wakeLock=null}}
+
+function playAlarm(){
+  try{
+    if(!alarmCtx)alarmCtx=new(window.AudioContext||window.webkitAudioContext);
+    if(alarmCtx.state==="suspended")alarmCtx.resume();
+    const o=alarmCtx.createOscillator(),g=alarmCtx.createGain();
+    o.type="square";o.frequency.setValueAtTime(880,alarmCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(440,alarmCtx.currentTime+.3);
+    o.frequency.linearRampToValueAtTime(880,alarmCtx.currentTime+.6);
+    g.gain.setValueAtTime(.3,alarmCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.01,alarmCtx.currentTime+4);
+    o.connect(g);g.connect(alarmCtx.destination);o.start();o.stop(alarmCtx.currentTime+4);
+    setTimeout(()=>{if(state===S.FINISHED)playAlarm()},3000)
+  }catch(e){}
+}
+function stopAlarm(){if(alarmCtx){try{alarmCtx.close()}catch(e){}alarmCtx=null}}
+
+function events(){
+  document.querySelectorAll(".time-col .btn").forEach(b=>b.addEventListener("click",()=>{
+    if(state!==S.IDLE)return;
+    const col=b.closest(".time-col"),unit=col.dataset.unit,dir=b.dataset.adjust==="up"?1:-1;
+    let val=parseInt($(unit+"Val").textContent)||0;
+    const lim={hours:23,minutes:59,seconds:59};
+    val+=dir;if(val<0)val=lim[unit];if(val>lim[unit])val=0;
+    $(unit+"Val").textContent=String(val).padStart(2,"0")
+  }));
+  document.querySelectorAll(".preset-btn").forEach(b=>b.addEventListener("click",()=>{
+    if(state!==S.IDLE)return;
+    setPick(parseInt(b.dataset.minutes)*60);
+    document.querySelectorAll(".preset-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active")
+  }));
+  pb.addEventListener("click",()=>{if(state===S.IDLE)start();else if(state===S.RUNNING)pause();else if(state===S.PAUSED)resume();else if(state===S.FINISHED)dismiss()});
+  sb.addEventListener("click",cancel);
+  alt.addEventListener("click",()=>{autoLock=!autoLock;alt.classList.toggle("on",autoLock);if(autoLock&&state===S.RUNNING)reqLock();if(!autoLock)relLock()});
+  db.addEventListener("click",dismiss);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&state===S.RUNNING&&autoLock)reqLock()})
+}
+init();
+</script>
+</body>
+</html>
