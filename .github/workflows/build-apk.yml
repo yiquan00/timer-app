@@ -31,11 +31,11 @@ jobs:
         run: chmod +x ./android/gradlew
 
       - name: Build with Gradle
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleDebug
         working-directory: ./android
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: timer-app-release
-          path: android/app/build/outputs/apk/release/*.apk
+          name: timer-app-debug
+          path: android/app/build/outputs/apk/debug/*.apk
