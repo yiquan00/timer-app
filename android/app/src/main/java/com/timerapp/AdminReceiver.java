@@ -1,4 +1,4 @@
-﻿package com.timerapp;
+package com.timerapp;
 
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;

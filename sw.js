@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "timer-app-v1";
+const CACHE_NAME = "timer-app-v1";
 const ASSETS = [
   "/",
   "/index.html",

@@ -1,0 +1,21 @@
+# Auto detect text files and normalize line endings
+* text=auto eol=lf
+
+# Source files
+*.java text
+*.xml text
+*.gradle text
+*.properties text
+*.yml text
+*.yaml text
+*.html text
+*.js text
+*.css text
+*.json text
+*.md text
+*.svg text
+
+# Binary files
+*.png binary
+*.jar binary
+*.keystore binary
