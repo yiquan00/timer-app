@@ -4,6 +4,7 @@
 android {
     namespace 'com.timerapp'
     compileSdk 34
+    buildToolsVersion "34.0.0"
     defaultConfig {
         applicationId 'com.timerapp'
         minSdk 24
@@ -22,3 +23,4 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 }
+
