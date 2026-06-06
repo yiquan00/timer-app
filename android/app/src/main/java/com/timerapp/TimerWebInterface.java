@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.webkit.JavascriptInterface;
+import android.os.Vibrator;
 
 public class TimerWebInterface {
     private Context context;
@@ -34,6 +35,14 @@ public class TimerWebInterface {
         context.startActivity(intent);
     }
 
+
+    @JavascriptInterface
+    public void vibrate(long milliseconds) {
+        Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            vibrator.vibrate(milliseconds);
+        }
+    }
     @JavascriptInterface
     public void lockScreen() {
         if (dpm.isAdminActive(adminName)) {

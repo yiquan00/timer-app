@@ -2,236 +2,386 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4f644e">
+<title>Timer</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#000;--surface:#1C1C1E;--surface2:#2C2C2E;--text:#fff;--text2:#8E8E93;--text3:#636366;--green:#34C759;--orange:#FF9500;--separator:#38383A}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;overflow:hidden;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.app{width:100%;max-width:420px;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px 24px;position:relative}
-.header{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:auto;padding-top:8px;width:100%;display:flex;justify-content:space-between}
-.header .title{font-size:20px;font-weight:700;color:var(--text)}
-.timer-picker{width:100%;display:flex;flex-direction:column;align-items:center;gap:28px}
-.timer-picker.hidden{display:none}
-@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
-.time-row{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
-.time-col{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:76px}
-.time-col .value{font-size:76px;font-weight:200;line-height:1;color:var(--text)}
-.time-col .btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);font-size:20px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
-.time-col .btn:active{background:var(--orange);color:var(--text);transform:scale(0.9)}
-.separator{font-size:72px;font-weight:200;color:var(--text3);align-self:center}
-.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:360px}
-.preset-btn{background:var(--surface2);border:none;border-radius:20px;padding:8px 16px;color:var(--text);font-size:14px;font-weight:500;touch-action:manipulation}
-.preset-btn:active{background:var(--orange);color:#fff;transform:scale(0.95)}
-.timer-display{width:100%;display:none;flex-direction:column;align-items:center;justify-content:center;flex:1}
-.timer-display.visible{display:flex}
-.progress-ring{width:250px;height:250px;position:relative;margin:0 auto}
-.progress-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.progress-ring .bg-circle{fill:none;stroke:var(--separator);stroke-width:4}
-.progress-ring .fg-circle{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.3s ease}
-.progress-ring .fg-circle.finished{stroke:var(--green);stroke-dashoffset:0!important}
-.time-number{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:60px;font-weight:200;text-align:center;line-height:1;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums}
-.time-number .label{font-size:13px;color:var(--text2);font-weight:500;margin-top:6px}
-.controls{width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:auto}
-.auto-lock-row{display:flex;align-items:center;gap:8px;width:100%;justify-content:center}
-.auto-lock-row .label{font-size:13px;color:var(--text2)}
-.toggle{position:relative;width:48px;height:30px;background:var(--surface2);border-radius:15px;touch-action:manipulation;flex-shrink:0}
-.toggle.on{background:var(--green)}
-.toggle .knob{position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:transform 0.3s}
-.toggle.on .knob{transform:translateX(18px)}
-.action-row{display:flex;gap:20px;align-items:center;width:100%;justify-content:center}
-.action-btn{width:72px;height:72px;border-radius:50%;border:none;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;touch-action:manipulation;outline:none}
-.action-btn:active{transform:scale(0.92);opacity:0.8}
-.action-btn.primary{background:var(--green);color:#fff;font-size:18px;width:80px;height:80px}
-.action-btn.primary.paused{background:var(--orange)}
-.action-btn.secondary{background:var(--surface2);color:#fff;font-size:14px}
-.action-btn.hidden{opacity:0;pointer-events:none;position:absolute}
-.admin-status{font-size:11px;color:var(--text3);margin-bottom:4px;text-align:center}
-.admin-status.active{color:var(--text2)}
-.timer-status{font-size:13px;color:var(--text2);margin-top:6px;text-align:center;min-height:18px}
-.alarm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200}
-.alarm-overlay.visible{display:flex}
-.alarm-overlay .icon{font-size:64px;margin-bottom:12px}
-.alarm-overlay .msg{font-size:28px;font-weight:700;color:var(--text);margin-bottom:6px}
-.alarm-overlay .sub{font-size:16px;color:var(--text2);margin-bottom:32px}
-.alarm-overlay .dismiss-btn{background:var(--green);border:none;border-radius:28px;padding:12px 44px;color:#fff;font-size:17px;font-weight:600;touch-action:manipulation;outline:none}
-.alarm-overlay .dismiss-btn:active{opacity:0.7;transform:scale(0.95)}
+:root{
+  --surface:#fcf8fb;--surface-dim:#dcd9dc;--surface-container:#f0edef;
+  --surface-container-low:#f6f3f5;--surface-container-high:#eae7ea;
+  --surface-container-highest:#e4e2e4;--surface-container-lowest:#fff;
+  --surface-variant:#e4e2e4;--primary:#4f644e;--primary-container:#a8bfa5;
+  --on-primary:#fff;--on-primary-container:#3a4e3a;--primary-fixed:#d1e9cd;
+  --primary-fixed-dim:#b6cdb2;--secondary:#5d5e63;
+  --secondary-container:#e0dfe4;--on-secondary-container:#626267;
+  --error:#ba1a1a;--error-container:#ffdad6;--outline:#747871;
+  --outline-variant:#c3c8bf;--on-surface:#1b1b1d;--on-surface-variant:#434842;
+  --inverse-surface:#303032;--inverse-on-surface:#f3f0f2;
+  --warning:#FF9500;--critical:#FF3B30;--green:#34C759
+}
+html,body{height:100%;background:var(--surface);color:var(--on-surface);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  overflow:hidden;-webkit-user-select:none;user-select:none}
+body{display:flex;justify-content:center;align-items:center}
+#app{width:100%;max-width:414px;height:100dvh;
+  background:linear-gradient(180deg,var(--surface)0%,var(--surface-dim)100%);
+  display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* Top Bar */
+.top-bar{background:linear-gradient(180deg,#4f644e 0%,#384c37 100%);
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--on-surface);padding-top:env(safe-area-inset-top);position:relative;z-index:50}
+.top-bar .title{font-size:20px;font-weight:600;color:var(--on-primary)}
+.top-bar .btn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.1);
+  color:var(--on-primary);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* Admin banner — on top of everything */
+.admin-banner{display:none;padding:6px 60px 6px 16px;background:var(--secondary-container);
+  align-items:center;justify-content:space-between;position:relative;z-index:30;min-height:36px}
+.admin-banner.show{display:flex}
+.admin-banner .txt{font-size:11px;color:var(--on-secondary-container);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:8px}
+.admin-btn{border:none;border-radius:6px;padding:4px 12px;background:var(--primary);
+  color:var(--on-primary);font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0}
+.admin-btn:active{transform:scale(0.95)}
+
+/* Pull Ring Mechanism — positioned relative to top-bar + admin-banner */
+.pull-wrap{position:absolute;top:0;right:24px;z-index:5;height:100%;pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.pull-slot{width:34px;height:10px;background:var(--inverse-surface);border-radius:0 0 6px 6px;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);border:1px solid rgba(116,120,113,0.3);border-top:none;flex-shrink:0}
+.pull-strap{width:24px;min-height:40px;background:var(--primary-container);
+  box-shadow:inset 2px 0 6px rgba(0,0,0,0.1),inset -2px 0 6px rgba(0,0,0,0.1);
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,0,0,0.06)4px,rgba(0,0,0,0.06)8px);
+  flex:1;border-radius:0 0 3px 3px;transition:height 0.05s linear;min-height:20px}
+.pull-ring{width:46px;height:46px;border-radius:50%;border:6px solid var(--surface-container-lowest);
+  box-shadow:0 6px 12px rgba(0,0,0,0.15),inset 0 2px 4px rgba(255,255,255,0.8),inset 0 -2px 4px rgba(0,0,0,0.1);
+  background:transparent;flex-shrink:0;cursor:grab;touch-action:none;pointer-events:auto;transition:transform 0.15s}
+.pull-ring:active{cursor:grabbing}
+.pull-ring.dragging{transform:scale(1.08)}
+
+/* Content */
+.content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:8px}
+
+/* Analog Dial */
+.dial-container{width:260px;height:260px;border-radius:50%;
+  background:linear-gradient(135deg,var(--surface-container-lowest)0%,var(--surface-container-low)100%);
+  box-shadow:0 10px 20px rgba(0,0,0,0.1),inset 0 2px 4px rgba(255,255,255,0.8),inset 0 -2px 5px rgba(0,0,0,0.05);
+  position:relative;display:flex;justify-content:center;align-items:center;flex-shrink:0}
+.dial-face{width:240px;height:240px;border-radius:50%;background:var(--surface-container-lowest);
+  box-shadow:inset 0 3px 6px rgba(0,0,0,0.08);position:relative}
+.dial-hand{position:absolute;width:8px;height:90px;
+  background:linear-gradient(90deg,var(--on-surface-variant)0%,var(--on-surface)100%);
+  bottom:50%;left:50%;transform-origin:bottom center;transform:translateX(-50%) rotate(-90deg);
+  border-radius:4px;box-shadow:2px 2px 5px rgba(0,0,0,0.2);z-index:10;transition:transform 0.3s ease}
+.dial-hand.warning{background:linear-gradient(90deg,var(--warning)0%,#e08600 100%)}
+.dial-hand.critical{background:linear-gradient(90deg,var(--critical)0%,#cc2a28 100%)}
+.dial-hand.finished{background:linear-gradient(90deg,var(--green)0%,#28a745 100%)}
+.dial-pivot{position:absolute;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle,var(--error)30%,#93000a 100%);
+  top:50%;left:50%;transform:translate(-50%,-50%);z-index:11;
+  box-shadow:0 2px 4px rgba(0,0,0,0.3),inset 0 1px 2px rgba(255,255,255,0.4);border:2px solid var(--on-surface)}
+.dial-tick{position:absolute;width:2px;height:8px;background:var(--surface-dim);
+  top:10px;left:50%;transform-origin:50% 110px}
+.dial-tick.major{height:12px;background:var(--outline)}
+.dial-num{position:absolute;font-size:13px;color:var(--on-surface);font-weight:500;transform:translate(-50%,-50%)}
+
+/* Digital Display */
+.time-display{font-size:56px;font-weight:200;letter-spacing:2px;
+  font-variant-numeric:tabular-nums;text-align:center;line-height:1.2;
+  color:var(--error);transition:color 0.3s;cursor:pointer;min-height:68px;user-select:none}
+.time-display.warning{color:var(--warning)}
+.time-display.critical{color:var(--critical);animation:pulse 0.5s ease infinite}
+.time-display.finished{color:var(--green);animation:pulse 0.3s ease infinite}
+.time-label{font-size:13px;color:var(--on-surface-variant);text-align:center;min-height:20px;transition:color 0.3s}
+
+/* Warning badge */
+.warn-badge{display:none;padding:3px 12px;border-radius:10px;font-size:11px;font-weight:600;
+  animation:fadeUp 0.3s ease;min-height:22px}
+.warn-badge.show{display:inline-block}
+.warn-badge.half{background:var(--warning);color:#fff}
+.warn-badge.almost{background:var(--critical);color:#fff;animation:pulse 0.6s ease infinite}
+
+/* Controls */
+.controls{display:flex;align-items:center;gap:32px}
+.ctrl-btn{width:64px;height:64px;border-radius:50%;border:1px solid var(--surface-variant);
+  background:linear-gradient(180deg,var(--surface-container-lowest)0%,var(--surface-container)100%);
+  box-shadow:0 4px 8px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,1);
+  display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;
+  transition:all 0.15s;color:var(--on-surface);touch-action:manipulation}
+.ctrl-btn:active{transform:scale(0.94);box-shadow:0 1px 2px rgba(0,0,0,0.1),inset 0 2px 4px rgba(0,0,0,0.1)}
+.ctrl-btn.small{width:48px;height:48px;font-size:22px}
+.ctrl-btn.primary{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+
+/* Options */
+.options{display:flex;align-items:center;gap:16px;margin-top:4px;flex-wrap:wrap;justify-content:center}
+.toggle-row{display:flex;align-items:center;gap:6px}
+.toggle-row .lbl{font-size:12px;color:var(--on-surface-variant);white-space:nowrap}
+.toggle{width:40px;height:24px;background:var(--surface-container-highest);border-radius:12px;
+  position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;touch-action:manipulation}
+.toggle.on{background:var(--primary)}
+.toggle .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+.toggle.on .knob{transform:translateX(16px)}
+
+/* Time Picker modal */
+.picker{display:none;flex-direction:column;align-items:center;gap:10px;width:100%;
+  animation:fadeUp 0.3s ease;position:absolute;z-index:30}
+.picker.show{display:flex}
+.picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:25}
+.picker-overlay.show{display:block}
+.picker-card{background:var(--surface-container-high);border-radius:20px;padding:20px 24px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.2);max-width:320px;width:90%}
+.picker-row{display:flex;align-items:center;gap:2px;font-size:48px;font-weight:200;
+  color:var(--on-surface);font-variant-numeric:tabular-nums;justify-content:center}
+.picker-col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:60px}
+.picker-col .val{font-size:48px;font-weight:200;line-height:1;cursor:pointer;min-width:60px;text-align:center}
+.picker-col .inc,.picker-col .dec{width:36px;height:36px;border-radius:50%;border:none;
+  background:var(--surface-container);color:var(--on-surface-variant);font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.picker-col .inc:active,.picker-col .dec:active{background:var(--primary-container);color:var(--on-primary-container)}
+.psep{font-size:48px;font-weight:200;color:var(--outline);padding:0 2px;align-self:center}
+.presets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px}
+.preset{background:var(--surface-container);border:none;border-radius:14px;padding:5px 12px;
+  color:var(--on-surface);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;touch-action:manipulation}
+.preset:active{background:var(--primary);color:var(--on-primary);transform:scale(0.95)}
+.picker-confirm{width:100%;padding:10px;border:none;border-radius:12px;background:var(--primary);
+  color:var(--on-primary);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+
+/* Animations */
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="header"><span class="title">计时器</span><span style="font-size:12px;color:var(--text2)">Timer</span></div>
-
-  <div class="timer-picker" id="picker">
-    <div class="time-row">
-      <div class="time-col" data-unit="hours">
-        <button class="btn" data-dir="1" data-unit="hours">&#x25B2;</button>
-        <span class="value" id="hV">00</span>
-        <button class="btn" data-dir="-1" data-unit="hours">&#x25BC;</button>
-      </div>
-      <span class="separator">:</span>
-      <div class="time-col" data-unit="minutes">
-        <button class="btn" data-dir="1" data-unit="minutes">&#x25B2;</button>
-        <span class="value" id="mV">05</span>
-        <button class="btn" data-dir="-1" data-unit="minutes">&#x25BC;</button>
-      </div>
-      <span class="separator">:</span>
-      <div class="time-col" data-unit="seconds">
-        <button class="btn" data-dir="1" data-unit="seconds">&#x25B2;</button>
-        <span class="value" id="sV">00</span>
-        <button class="btn" data-dir="-1" data-unit="seconds">&#x25BC;</button>
-      </div>
-    </div>
-    <div class="presets">
-      <button class="preset-btn" data-m="1">1分</button>
-      <button class="preset-btn" data-m="3">3分</button>
-      <button class="preset-btn" data-m="5">5分</button>
-      <button class="preset-btn" data-m="10">10分</button>
-      <button class="preset-btn" data-m="15">15分</button>
-      <button class="preset-btn" data-m="30">30分</button>
-      <button class="preset-btn" data-m="60">60分</button>
-    </div>
+<div id="app">
+  <div class="top-bar">
+    <button class="btn" style="visibility:hidden">&#9432;</button>
+    <span class="title">Timer</span>
+    <button class="btn" style="visibility:hidden">&#9881;</button>
   </div>
 
-  <div class="timer-display" id="display">
-    <div class="progress-ring">
-      <svg viewBox="0 0 120 120">
-        <circle class="bg-circle" cx="60" cy="60" r="52"/>
-        <circle class="fg-circle" id="prog" cx="60" cy="60" r="52" stroke-dasharray="326.73"/>
-      </svg>
-      <div class="time-number" id="tNum">
-        <div id="tDisp">05:00</div>
-        <div class="label" id="tLabel">剩余时间</div>
-      </div>
-    </div>
-    <div class="timer-status" id="tStatus"></div>
+  <!-- Admin banner — before pull ring in DOM -->
+  <div class="admin-banner" id="adminBanner">
+    <span class="txt">启用锁屏需激活设备管理员</span>
+    <button class="admin-btn" id="adminBtn">激活</button>
   </div>
 
-  <div class="controls">
-    <div class="admin-status" id="adminStatus"></div>
-    <div class="auto-lock-row">
-      <span class="label">结束后锁屏</span>
-      <div class="toggle on" id="lockToggle"><div class="knob"></div></div>
+  <!-- Pull Ring — absolutely positioned, wraps vertically -->
+  <div class="pull-wrap" id="pullWrap">
+    <div class="pull-slot"></div>
+    <div class="pull-strap" id="pullStrap"></div>
+    <div class="pull-ring" id="pullRing"></div>
+  </div>
+
+  <!-- Picker overlay -->
+  <div class="picker-overlay" id="pickerOverlay"></div>
+
+  <div class="content">
+    <div class="picker" id="picker">
+      <div class="picker-card">
+        <div class="picker-row">
+          <div class="picker-col"><button class="inc" data-t="h">&#9650;</button><span class="val" id="hV">00</span><button class="dec" data-t="h">&#9660;</button></div>
+          <span class="psep">:</span>
+          <div class="picker-col"><button class="inc" data-t="m">&#9650;</button><span class="val" id="mV">05</span><button class="dec" data-t="m">&#9660;</button></div>
+          <span class="psep">:</span>
+          <div class="picker-col"><button class="inc" data-t="s">&#9650;</button><span class="val" id="sV">00</span><button class="dec" data-t="s">&#9660;</button></div>
+        </div>
+        <div class="presets">
+          <button class="preset" data-s="30">30s</button>
+          <button class="preset" data-s="60">1m</button>
+          <button class="preset" data-s="180">3m</button>
+          <button class="preset" data-s="300">5m</button>
+          <button class="preset" data-s="600">10m</button>
+          <button class="preset" data-s="1800">30m</button>
+        </div>
+        <button class="picker-confirm" id="pickerConfirm">确定</button>
+      </div>
     </div>
-    <div class="action-row">
-      <button class="action-btn secondary hidden" id="secBtn">&#x2715;</button>
-      <button class="action-btn primary" id="priBtn">开始</button>
+
+    <div class="dial-container">
+      <div class="dial-face" id="dialFace"></div>
+      <div class="dial-hand" id="dialHand"></div>
+      <div class="dial-pivot"></div>
+    </div>
+
+    <div class="time-display" id="timeDisplay" tabindex="0">05:00</div>
+    <div class="time-label" id="timeLabel">拖拽拉环或点击设置</div>
+    <div class="warn-badge" id="warnBadge"></div>
+
+    <div class="controls">
+      <button class="ctrl-btn small" id="resetBtn">&#8634;</button>
+      <button class="ctrl-btn primary" id="playBtn">&#9654;</button>
+    </div>
+
+    <div class="options">
+      <div class="toggle-row"><span class="lbl">锁屏</span><div class="toggle on" id="lockToggle"><div class="knob"></div></div></div>
+      <div class="toggle-row"><span class="lbl">振动</span><div class="toggle on" id="vibeToggle"><div class="knob"></div></div></div>
     </div>
   </div>
-</div>
-<div class="alarm-overlay" id="alarmView">
-  <div class="icon">&#x23F0;</div>
-  <div class="msg">时间到！</div>
-  <div class="sub">Timer Finished</div>
-  <button class="dismiss-btn" id="dimBtn">停止</button>
 </div>
 
 <script>
-const S={IDLE:"idle",RUNNING:"running",PAUSED:"paused",FINISHED:"finished"};
-let state=S.IDLE,total=300,remain=0,interval=null,autoLock=true;
-const $=x=>document.getElementById(x);
-const hV=$("hV"),mV=$("mV"),sV=$("sV");
-const C=2*Math.PI*52;
+// ---- State ----
+const S={IDLE:0,RUNNING:1,PAUSED:2,FINISHED:3};
+var state=S.IDLE,total=300,remain=0,interval=null,autoLock=true,vibe=true,
+    warned50=false,warned20=false;
 
-function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),s2=s%60;return h>0?h+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0")}
+// ---- Helpers ----
+var $=function(id){return document.getElementById(id)};
+var hV=$("hV"),mV=$("mV"),sV=$("sV");
+var td=$("timeDisplay"),tl=$("timeLabel"),warn=$("warnBadge");
+var playBtn=$("playBtn"),resetBtn=$("resetBtn");
+var dialHand=$("dialHand"),pullRing=$("pullRing"),pullStrap=$("pullStrap"),pullWrap=$("pullWrap");
+var picker=$("picker"),pickerOv=$("pickerOverlay");
 
-function getPick(){return (parseInt(hV.textContent)||0)*3600+(parseInt(mV.textContent)||0)*60+(parseInt(sV.textContent)||0)}
-function setPick(s){hV.textContent=String(Math.floor(s/3600)).padStart(2,"0");mV.textContent=String(Math.floor((s%3600)/60)).padStart(2,"0");sV.textContent=String(s%60).padStart(2,"0")}
+function isAdmin(){return window.TimerBridge&&TimerBridge.isAdminActive()}
+function doLock(){if(autoLock&&isAdmin())TimerBridge.lockScreen()}
+function doVibe(ms){if(!vibe)return;if(navigator.vibrate)navigator.vibrate(ms);else if(window.TimerBridge&&TimerBridge.vibrate)TimerBridge.vibrate(ms)}
 
-function updDisp(){$("tDisp").textContent=state===S.IDLE?fmt(getPick()):fmt(remain)}
-function updProg(r,t){$("prog").setAttribute("stroke-dashoffset",C*(1-(t>0?r/t:0)))}
+function fmt(s){var m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0")}
+function fmtL(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),se=s%60;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(se).padStart(2,"0")}
+function fmtDisplay(s){return s>=3600?fmtL(s):fmt(s)}
 
-function showIdle(){
-  state=S.IDLE;$("picker").classList.remove("hidden");$("display").classList.remove("visible");
-  $("secBtn").classList.add("hidden");$("priBtn").textContent="开始";$("priBtn").className="action-btn primary";
-  $("prog").className="fg-circle";$("tStatus").textContent="";updDisp()
+function updateDial(pct){var deg=-90+(pct*360);dialHand.style.transform="translateX(-50%) rotate("+deg+"deg)"}
+function updateAll(){td.textContent=fmtDisplay(total);updateDial(total/3600);var sp=total/MAX_TIME;pullStrap.style.flex=String(sp*0.8+0.2)}
+
+// ---- Pull ring as vertical drag slider ----
+var dragging=false;
+var MAX_TIME=3600; // 60 min
+
+function pullY(e){
+  var rect=pullWrap.getBoundingClientRect();
+  var y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+  var h=rect.height-60; // leave room for ring
+  y=Math.max(0,Math.min(h,y));
+  var pct=y/h; // 0 at top, 1 at bottom
+  total=Math.round(pct*MAX_TIME);
+  if(total<5)total=0;
+  total=Math.round(total/5)*5; // snap to 5s
+  var strapPct=pct*0.8+0.2; // strap never goes below 20%
+  pullStrap.style.flex=String(strapPct);
+  updateAll();
+  tl.textContent=total>0?"拖拽拉环调时":"";
 }
-function start(){
-  total=getPick();if(total<1)return;
-  remain=total;state=S.RUNNING;
-  $("picker").classList.add("hidden");$("display").classList.add("visible");
-  $("secBtn").classList.remove("hidden");$("priBtn").textContent="暂停";$("priBtn").className="action-btn primary";
-  $("prog").className="fg-circle";$("tLabel").textContent="剩余时间";$("tStatus").textContent="倒计时中…";
-  updDisp();updProg(remain,total);interval=setInterval(tick,1e3)
-}
-function pause(){state=S.PAUSED;clearInterval(interval);interval=null;$("priBtn").textContent="继续";$("priBtn").className="action-btn primary paused";$("tStatus").textContent="已暂停"}
-function resume(){state=S.RUNNING;$("priBtn").textContent="暂停";$("priBtn").className="action-btn primary";$("prog").className="fg-circle";$("tStatus").textContent="倒计时中…";interval=setInterval(tick,1e3)}
-function cancel(){clearInterval(interval);interval=null;showIdle();setPick(total||300);updDisp()}
-function tick(){remain--;updDisp();updProg(remain,total);if(remain<=0){clearInterval(interval);interval=null;finish()}}
 
-function finish(){
-  state=S.FINISHED;$("tStatus").textContent="时间到！";$("tDisp").textContent="00:00";
-  $("prog").className="fg-circle finished";$("tLabel").textContent="时间到";
-  $("priBtn").textContent="完成";$("priBtn").className="action-btn primary";$("secBtn").classList.add("hidden");
-  playAlarm();$("alarmView").classList.add("visible");
-  try{navigator.vibrate&&navigator.vibrate([300,200,300,200,500])}catch(e){}
-  // 调用原生锁屏 (如果启用)
-  if(autoLock&&window.TimerBridge){
-    if(TimerBridge.isAdminActive()){
-      TimerBridge.lockScreen();
+pullRing.addEventListener("mousedown",function(e){e.preventDefault();dragging=true;
+  pullRing.classList.add("dragging");pullY(e)});
+document.addEventListener("mousemove",function(e){if(dragging){pullY(e)}});
+document.addEventListener("mouseup",function(){if(dragging){dragging=false;
+  pullRing.classList.remove("dragging");tl.textContent="点击 ▶ 开始"}});
+pullRing.addEventListener("touchstart",function(e){dragging=true;
+  pullRing.classList.add("dragging");pullY(e)},{passive:true});
+document.addEventListener("touchmove",function(e){if(dragging){pullY(e);e.preventDefault()}},{passive:false});
+document.addEventListener("touchend",function(){if(dragging){dragging=false;
+  pullRing.classList.remove("dragging");tl.textContent="点击 ▶ 开始"}});
+
+// ---- Timer tick ----
+function tick(){
+  remain--;
+  if(remain<=0){
+    clearInterval(interval);interval=null;state=S.FINISHED;
+    td.textContent="00:00";td.className="time-display finished";
+    tl.textContent="时间到!";warn.textContent="&#9200; 时间到!";warn.className="warn-badge show almost";
+    playBtn.innerHTML="&#9632;";playBtn.className="ctrl-btn";
+    dialHand.className="dial-hand finished";
+    doVibe(1200);if(isAdmin())setTimeout(doLock,800);
+    return;
+  }
+  td.textContent=fmtDisplay(remain);
+  var pct=1-(remain/total);
+  updateDial(pct);
+  if(pct>0){
+    if(pct>=0.8&&!warned20){warned20=true;
+      td.className="time-display critical";tl.textContent="即将结束!";
+      warn.textContent="&#9200; 剩余不到20%";warn.className="warn-badge show almost";
+      doVibe(400);dialHand.className="dial-hand critical";
+    }else if(pct>=0.5&&!warned50){warned50=true;
+      td.className="time-display warning";tl.textContent="时间过半";
+      warn.textContent="&#9888; 已用50%时间";warn.className="warn-badge show half";
+      doVibe(200);dialHand.className="dial-hand warning";
     }
   }
 }
 
-function dismiss(){$("alarmView").classList.remove("visible");stopAlarm();showIdle();setPick(total||300)}
+function startTimer(){if(total<=0)return;state=S.RUNNING;remain=total;
+  warned50=false;warned20=false;td.className="time-display";tl.textContent="剩余时间";
+  warn.className="warn-badge";dialHand.className="dial-hand";
+  playBtn.innerHTML="&#10074;&#10074;";playBtn.className="ctrl-btn primary";
+  tick();if(interval)clearInterval(interval);interval=setInterval(tick,1000)}
+function pauseTimer(){clearInterval(interval);interval=null;state=S.PAUSED;
+  playBtn.innerHTML="&#9654;";playBtn.className="ctrl-btn primary"}
+function resumeTimer(){state=S.RUNNING;playBtn.innerHTML="&#10074;&#10074;";playBtn.className="ctrl-btn primary";
+  interval=setInterval(tick,1000)}
+function resetTimer(){
+  clearInterval(interval);interval=null;state=S.IDLE;
+  td.className="time-display";tl.textContent="拖拽拉环或点击设置";warn.className="warn-badge";
+  dialHand.className="dial-hand";playBtn.innerHTML="&#9654;";playBtn.className="ctrl-btn primary";
+  updateAll();}
 
-let alarmCtx=null;
-function playAlarm(){
-  try{
-    if(!alarmCtx)alarmCtx=new(window.AudioContext||window.webkitAudioContext);
-    if(alarmCtx.state==="suspended")alarmCtx.resume();
-    const o=alarmCtx.createOscillator(),g=alarmCtx.createGain();
-    o.type="square";o.frequency.setValueAtTime(880,alarmCtx.currentTime);
-    o.frequency.linearRampToValueAtTime(440,alarmCtx.currentTime+.3);
-    o.frequency.linearRampToValueAtTime(880,alarmCtx.currentTime+.6);
-    g.gain.setValueAtTime(.3,alarmCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.01,alarmCtx.currentTime+4);
-    o.connect(g);g.connect(alarmCtx.destination);o.start();o.stop(alarmCtx.currentTime+4);
-    setTimeout(()=>{if(state===S.FINISHED)playAlarm()},3000)
-  }catch(e){}
+// ---- Buttons ----
+playBtn.addEventListener("click",function(){
+  if(state===S.IDLE){startTimer();return}
+  if(state===S.RUNNING){pauseTimer();return}
+  if(state===S.PAUSED){resumeTimer();return}
+  if(state===S.FINISHED){resetTimer();return}
+});
+resetBtn.addEventListener("click",function(){resetTimer();picker.classList.add("show");pickerOv.classList.add("show")});
+
+// ---- Picker ----
+function getTotal(){return parseInt(hV.textContent||0)*3600+parseInt(mV.textContent||0)*60+parseInt(sV.textContent||0)}
+document.querySelectorAll(".inc,.dec").forEach(function(b){
+  b.addEventListener("click",function(){
+    var t=b.dataset.t;var el=t==="h"?hV:t==="m"?mV:sV;
+    var v=parseInt(el.textContent)||0;var d=b.classList.contains("inc")?1:-1;
+    if(t==="h")v=(v+d+24)%24;else v=(v+d+60)%60;
+    el.textContent=String(v).padStart(2,"0");total=getTotal();updateAll();
+  });
+});
+document.querySelectorAll(".preset").forEach(function(el){
+  el.addEventListener("click",function(){
+    var s=parseInt(el.dataset.s);
+    hV.textContent=String(Math.floor(s/3600)).padStart(2,"0");
+    mV.textContent=String(Math.floor((s%3600)/60)).padStart(2,"0");
+    sV.textContent=String(s%60).padStart(2,"0");total=s;updateAll();
+    picker.classList.remove("show");pickerOv.classList.remove("show");
+  });
+});
+$("pickerConfirm").addEventListener("click",function(){picker.classList.remove("show");pickerOv.classList.remove("show")});
+pickerOv.addEventListener("click",function(){picker.classList.remove("show");pickerOv.classList.remove("show")});
+td.addEventListener("click",function(){if(state!==S.RUNNING&&state!==S.PAUSED){
+  picker.classList.add("show");pickerOv.classList.add("show")}});
+
+// ---- Toggles ----
+$("lockToggle").addEventListener("click",function(){autoLock=!autoLock;$("lockToggle").classList.toggle("on",autoLock)});
+$("vibeToggle").addEventListener("click",function(){vibe=!vibe;$("vibeToggle").classList.toggle("on",vibe)});
+
+// ---- Admin ----
+function updateAdmin(){
+  var banner=$("adminBanner"),btn=$("adminBtn");
+  if(window.TimerBridge&&isAdmin()){banner.classList.remove("show")}else{banner.classList.add("show")}
 }
-function stopAlarm(){if(alarmCtx){try{alarmCtx.close()}catch(e){}alarmCtx=null}}
+$("adminBtn").addEventListener("click",function(){if(window.TimerBridge)TimerBridge.requestAdmin()});
+updateAdmin();setInterval(updateAdmin,3000);
 
-// 管理员状态
-function checkAdmin(){
-  const el=$("adminStatus");
-  if(window.TimerBridge){
-    if(TimerBridge.isAdminActive()){
-      el.textContent="锁屏权限：已启用 ✓";
-      el.className="admin-status active";
-    }else{
-      el.textContent="点击横幅激活锁屏权限";
-      el.className="admin-status";
-    }
-  }else{
-    el.textContent="";
-  }
-}
+// ---- Dial ticks ----
+(function(){
+  var face=$("dialFace");
+  for(var i=0;i<60;i++){var t=document.createElement("div");
+    t.className="dial-tick"+(i%5===0?" major":"");t.style.transform="translateX(-50%) rotate("+(i*6)+"deg)";face.appendChild(t)}
+  var nums=[{v:0,deg:-90},{v:5,deg:-60},{v:10,deg:-30},{v:15,deg:0},{v:20,deg:30},{v:25,deg:60},
+    {v:30,deg:90},{v:35,deg:120},{v:40,deg:150},{v:45,deg:180},{v:50,deg:210},{v:55,deg:240}];
+  nums.forEach(function(n){var el=document.createElement("div");el.className="dial-num";
+    var r=84,rad=(n.deg-90)*Math.PI/180;el.style.left=(120+r*Math.cos(rad))+"px";
+    el.style.top=(120+r*Math.sin(rad))+"px";el.textContent=n.v;face.appendChild(el)});
+})();
 
-// 事件绑定
-document.querySelectorAll(".time-col .btn").forEach(b=>b.addEventListener("click",()=>{
-  if(state!==S.IDLE)return;
-  const u=b.dataset.unit,d=parseInt(b.dataset.dir);
-  let v=parseInt($(u.charAt(0)+"V").textContent)||0;
-  const lim={hours:23,minutes:59,seconds:59};
-  v+=d;if(v<0)v=lim[u];if(v>lim[u])v=0;
-  $(u.charAt(0)+"V").textContent=String(v).padStart(2,"0")
-}));
+// ---- Keyboard ----
+document.addEventListener("keydown",function(e){if(e.code==="Space"){e.preventDefault();playBtn.click()}
+  if(e.code==="KeyR")resetBtn.click()});
 
-document.querySelectorAll(".preset-btn").forEach(b=>b.addEventListener("click",()=>{
-  if(state!==S.IDLE)return;setPick(parseInt(b.dataset.m)*60);
-  document.querySelectorAll(".preset-btn").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active")
-}));
-
-$("priBtn").addEventListener("click",()=>{if(state===S.IDLE)start();else if(state===S.RUNNING)pause();else if(state===S.PAUSED)resume();else if(state===S.FINISHED)dismiss()});
-$("secBtn").addEventListener("click",cancel);
-$("lockToggle").addEventListener("click",()=>{autoLock=!autoLock;$("lockToggle").classList.toggle("on",autoLock)});
-$("dimBtn").addEventListener("click",dismiss);
-
-// 初始化
-checkAdmin();
-setInterval(checkAdmin,2000);
+// ---- Init ----
+mV.textContent="05";updateAll();
 </script>
 </body>
 </html>
