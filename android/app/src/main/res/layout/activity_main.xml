@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  android:background="#000000">
+
+  <!-- 设备管理员激活横幅 -->
+  <LinearLayout
+    android:id="@+id/adminBanner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="12dp"
+    android:background="#2C2C2E"
+    android:visibility="visible">
+
+    <TextView
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:text="启用锁屏需要激活设备管理员"
+      android:textColor="#8E8E93"
+      android:textSize="13dp" />
+
+    <Button
+      android:id="@+id/adminBtn"
+      android:layout_width="wrap_content"
+      android:layout_height="36dp"
+      android:text="激活"
+      android:textColor="#FFFFFF"
+      android:textSize="13dp"
+      android:background="@drawable/admin_button_bg"
+      android:paddingLeft="16dp"
+      android:paddingRight="16dp" />
+  </LinearLayout>
+
+  <!-- WebView 计时器 -->
+  <WebView
+    android:id="@+id/timerWebView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+</LinearLayout>

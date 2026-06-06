@@ -1,0 +1,1 @@
+﻿-keepclassmembers class com.timerapp.TimerWebInterface { @android.webkit.JavascriptInterface <methods>; }

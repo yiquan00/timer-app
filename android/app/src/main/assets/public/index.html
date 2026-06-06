@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#000;--surface:#1C1C1E;--surface2:#2C2C2E;--text:#fff;--text2:#8E8E93;--text3:#636366;--green:#34C759;--orange:#FF9500;--separator:#38383A}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;overflow:hidden;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.app{width:100%;max-width:420px;height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px 24px;position:relative}
+.header{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:auto;padding-top:8px;width:100%;display:flex;justify-content:space-between}
+.header .title{font-size:20px;font-weight:700;color:var(--text)}
+.timer-picker{width:100%;display:flex;flex-direction:column;align-items:center;gap:28px}
+.timer-picker.hidden{display:none}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.time-row{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+.time-col{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:76px}
+.time-col .value{font-size:76px;font-weight:200;line-height:1;color:var(--text)}
+.time-col .btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--surface2);color:var(--text2);font-size:20px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+.time-col .btn:active{background:var(--orange);color:var(--text);transform:scale(0.9)}
+.separator{font-size:72px;font-weight:200;color:var(--text3);align-self:center}
+.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%;max-width:360px}
+.preset-btn{background:var(--surface2);border:none;border-radius:20px;padding:8px 16px;color:var(--text);font-size:14px;font-weight:500;touch-action:manipulation}
+.preset-btn:active{background:var(--orange);color:#fff;transform:scale(0.95)}
+.timer-display{width:100%;display:none;flex-direction:column;align-items:center;justify-content:center;flex:1}
+.timer-display.visible{display:flex}
+.progress-ring{width:250px;height:250px;position:relative;margin:0 auto}
+.progress-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.progress-ring .bg-circle{fill:none;stroke:var(--separator);stroke-width:4}
+.progress-ring .fg-circle{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.3s ease}
+.progress-ring .fg-circle.finished{stroke:var(--green);stroke-dashoffset:0!important}
+.time-number{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:60px;font-weight:200;text-align:center;line-height:1;pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.time-number .label{font-size:13px;color:var(--text2);font-weight:500;margin-top:6px}
+.controls{width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:auto}
+.auto-lock-row{display:flex;align-items:center;gap:8px;width:100%;justify-content:center}
+.auto-lock-row .label{font-size:13px;color:var(--text2)}
+.toggle{position:relative;width:48px;height:30px;background:var(--surface2);border-radius:15px;touch-action:manipulation;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle .knob{position:absolute;top:2px;left:2px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);transition:transform 0.3s}
+.toggle.on .knob{transform:translateX(18px)}
+.action-row{display:flex;gap:20px;align-items:center;width:100%;justify-content:center}
+.action-btn{width:72px;height:72px;border-radius:50%;border:none;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;touch-action:manipulation;outline:none}
+.action-btn:active{transform:scale(0.92);opacity:0.8}
+.action-btn.primary{background:var(--green);color:#fff;font-size:18px;width:80px;height:80px}
+.action-btn.primary.paused{background:var(--orange)}
+.action-btn.secondary{background:var(--surface2);color:#fff;font-size:14px}
+.action-btn.hidden{opacity:0;pointer-events:none;position:absolute}
+.admin-status{font-size:11px;color:var(--text3);margin-bottom:4px;text-align:center}
+.admin-status.active{color:var(--text2)}
+.timer-status{font-size:13px;color:var(--text2);margin-top:6px;text-align:center;min-height:18px}
+.alarm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200}
+.alarm-overlay.visible{display:flex}
+.alarm-overlay .icon{font-size:64px;margin-bottom:12px}
+.alarm-overlay .msg{font-size:28px;font-weight:700;color:var(--text);margin-bottom:6px}
+.alarm-overlay .sub{font-size:16px;color:var(--text2);margin-bottom:32px}
+.alarm-overlay .dismiss-btn{background:var(--green);border:none;border-radius:28px;padding:12px 44px;color:#fff;font-size:17px;font-weight:600;touch-action:manipulation;outline:none}
+.alarm-overlay .dismiss-btn:active{opacity:0.7;transform:scale(0.95)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header"><span class="title">计时器</span><span style="font-size:12px;color:var(--text2)">Timer</span></div>
+
+  <div class="timer-picker" id="picker">
+    <div class="time-row">
+      <div class="time-col" data-unit="hours">
+        <button class="btn" data-dir="1" data-unit="hours">&#x25B2;</button>
+        <span class="value" id="hV">00</span>
+        <button class="btn" data-dir="-1" data-unit="hours">&#x25BC;</button>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-col" data-unit="minutes">
+        <button class="btn" data-dir="1" data-unit="minutes">&#x25B2;</button>
+        <span class="value" id="mV">05</span>
+        <button class="btn" data-dir="-1" data-unit="minutes">&#x25BC;</button>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-col" data-unit="seconds">
+        <button class="btn" data-dir="1" data-unit="seconds">&#x25B2;</button>
+        <span class="value" id="sV">00</span>
+        <button class="btn" data-dir="-1" data-unit="seconds">&#x25BC;</button>
+      </div>
+    </div>
+    <div class="presets">
+      <button class="preset-btn" data-m="1">1分</button>
+      <button class="preset-btn" data-m="3">3分</button>
+      <button class="preset-btn" data-m="5">5分</button>
+      <button class="preset-btn" data-m="10">10分</button>
+      <button class="preset-btn" data-m="15">15分</button>
+      <button class="preset-btn" data-m="30">30分</button>
+      <button class="preset-btn" data-m="60">60分</button>
+    </div>
+  </div>
+
+  <div class="timer-display" id="display">
+    <div class="progress-ring">
+      <svg viewBox="0 0 120 120">
+        <circle class="bg-circle" cx="60" cy="60" r="52"/>
+        <circle class="fg-circle" id="prog" cx="60" cy="60" r="52" stroke-dasharray="326.73"/>
+      </svg>
+      <div class="time-number" id="tNum">
+        <div id="tDisp">05:00</div>
+        <div class="label" id="tLabel">剩余时间</div>
+      </div>
+    </div>
+    <div class="timer-status" id="tStatus"></div>
+  </div>
+
+  <div class="controls">
+    <div class="admin-status" id="adminStatus"></div>
+    <div class="auto-lock-row">
+      <span class="label">结束后锁屏</span>
+      <div class="toggle on" id="lockToggle"><div class="knob"></div></div>
+    </div>
+    <div class="action-row">
+      <button class="action-btn secondary hidden" id="secBtn">&#x2715;</button>
+      <button class="action-btn primary" id="priBtn">开始</button>
+    </div>
+  </div>
+</div>
+<div class="alarm-overlay" id="alarmView">
+  <div class="icon">&#x23F0;</div>
+  <div class="msg">时间到！</div>
+  <div class="sub">Timer Finished</div>
+  <button class="dismiss-btn" id="dimBtn">停止</button>
+</div>
+
+<script>
+const S={IDLE:"idle",RUNNING:"running",PAUSED:"paused",FINISHED:"finished"};
+let state=S.IDLE,total=300,remain=0,interval=null,autoLock=true;
+const $=x=>document.getElementById(x);
+const hV=$("hV"),mV=$("mV"),sV=$("sV");
+const C=2*Math.PI*52;
+
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),s2=s%60;return h>0?h+":"+String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0"):String(m).padStart(2,"0")+":"+String(s2).padStart(2,"0")}
+
+function getPick(){return (parseInt(hV.textContent)||0)*3600+(parseInt(mV.textContent)||0)*60+(parseInt(sV.textContent)||0)}
+function setPick(s){hV.textContent=String(Math.floor(s/3600)).padStart(2,"0");mV.textContent=String(Math.floor((s%3600)/60)).padStart(2,"0");sV.textContent=String(s%60).padStart(2,"0")}
+
+function updDisp(){$("tDisp").textContent=state===S.IDLE?fmt(getPick()):fmt(remain)}
+function updProg(r,t){$("prog").setAttribute("stroke-dashoffset",C*(1-(t>0?r/t:0)))}
+
+function showIdle(){
+  state=S.IDLE;$("picker").classList.remove("hidden");$("display").classList.remove("visible");
+  $("secBtn").classList.add("hidden");$("priBtn").textContent="开始";$("priBtn").className="action-btn primary";
+  $("prog").className="fg-circle";$("tStatus").textContent="";updDisp()
+}
+function start(){
+  total=getPick();if(total<1)return;
+  remain=total;state=S.RUNNING;
+  $("picker").classList.add("hidden");$("display").classList.add("visible");
+  $("secBtn").classList.remove("hidden");$("priBtn").textContent="暂停";$("priBtn").className="action-btn primary";
+  $("prog").className="fg-circle";$("tLabel").textContent="剩余时间";$("tStatus").textContent="倒计时中…";
+  updDisp();updProg(remain,total);interval=setInterval(tick,1e3)
+}
+function pause(){state=S.PAUSED;clearInterval(interval);interval=null;$("priBtn").textContent="继续";$("priBtn").className="action-btn primary paused";$("tStatus").textContent="已暂停"}
+function resume(){state=S.RUNNING;$("priBtn").textContent="暂停";$("priBtn").className="action-btn primary";$("prog").className="fg-circle";$("tStatus").textContent="倒计时中…";interval=setInterval(tick,1e3)}
+function cancel(){clearInterval(interval);interval=null;showIdle();setPick(total||300);updDisp()}
+function tick(){remain--;updDisp();updProg(remain,total);if(remain<=0){clearInterval(interval);interval=null;finish()}}
+
+function finish(){
+  state=S.FINISHED;$("tStatus").textContent="时间到！";$("tDisp").textContent="00:00";
+  $("prog").className="fg-circle finished";$("tLabel").textContent="时间到";
+  $("priBtn").textContent="完成";$("priBtn").className="action-btn primary";$("secBtn").classList.add("hidden");
+  playAlarm();$("alarmView").classList.add("visible");
+  try{navigator.vibrate&&navigator.vibrate([300,200,300,200,500])}catch(e){}
+  // 调用原生锁屏 (如果启用)
+  if(autoLock&&window.TimerBridge){
+    if(TimerBridge.isAdminActive()){
+      TimerBridge.lockScreen();
+    }
+  }
+}
+
+function dismiss(){$("alarmView").classList.remove("visible");stopAlarm();showIdle();setPick(total||300)}
+
+let alarmCtx=null;
+function playAlarm(){
+  try{
+    if(!alarmCtx)alarmCtx=new(window.AudioContext||window.webkitAudioContext);
+    if(alarmCtx.state==="suspended")alarmCtx.resume();
+    const o=alarmCtx.createOscillator(),g=alarmCtx.createGain();
+    o.type="square";o.frequency.setValueAtTime(880,alarmCtx.currentTime);
+    o.frequency.linearRampToValueAtTime(440,alarmCtx.currentTime+.3);
+    o.frequency.linearRampToValueAtTime(880,alarmCtx.currentTime+.6);
+    g.gain.setValueAtTime(.3,alarmCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.01,alarmCtx.currentTime+4);
+    o.connect(g);g.connect(alarmCtx.destination);o.start();o.stop(alarmCtx.currentTime+4);
+    setTimeout(()=>{if(state===S.FINISHED)playAlarm()},3000)
+  }catch(e){}
+}
+function stopAlarm(){if(alarmCtx){try{alarmCtx.close()}catch(e){}alarmCtx=null}}
+
+// 管理员状态
+function checkAdmin(){
+  const el=$("adminStatus");
+  if(window.TimerBridge){
+    if(TimerBridge.isAdminActive()){
+      el.textContent="锁屏权限：已启用 ✓";
+      el.className="admin-status active";
+    }else{
+      el.textContent="点击横幅激活锁屏权限";
+      el.className="admin-status";
+    }
+  }else{
+    el.textContent="";
+  }
+}
+
+// 事件绑定
+document.querySelectorAll(".time-col .btn").forEach(b=>b.addEventListener("click",()=>{
+  if(state!==S.IDLE)return;
+  const u=b.dataset.unit,d=parseInt(b.dataset.dir);
+  let v=parseInt($(u.charAt(0)+"V").textContent)||0;
+  const lim={hours:23,minutes:59,seconds:59};
+  v+=d;if(v<0)v=lim[u];if(v>lim[u])v=0;
+  $(u.charAt(0)+"V").textContent=String(v).padStart(2,"0")
+}));
+
+document.querySelectorAll(".preset-btn").forEach(b=>b.addEventListener("click",()=>{
+  if(state!==S.IDLE)return;setPick(parseInt(b.dataset.m)*60);
+  document.querySelectorAll(".preset-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active")
+}));
+
+$("priBtn").addEventListener("click",()=>{if(state===S.IDLE)start();else if(state===S.RUNNING)pause();else if(state===S.PAUSED)resume();else if(state===S.FINISHED)dismiss()});
+$("secBtn").addEventListener("click",cancel);
+$("lockToggle").addEventListener("click",()=>{autoLock=!autoLock;$("lockToggle").classList.toggle("on",autoLock)});
+$("dimBtn").addEventListener("click",dismiss);
+
+// 初始化
+checkAdmin();
+setInterval(checkAdmin,2000);
+</script>
+</body>
+</html>
